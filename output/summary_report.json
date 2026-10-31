@@ -1,0 +1,91 @@
+{
+    "dataset": "sample-web-logs.csv",
+    "generated_at": "2026-10-25T22:19:30",
+    "total_valid_records": 800,
+    "malformed_records": 0,
+    "request_statistics": {
+        "successful_requests": 692,
+        "redirects": 38,
+        "client_errors": 41,
+        "server_errors": 29,
+        "failed_requests": 70,
+        "unknown_status_requests": 0,
+        "error_percentage": 8.75
+    },
+    "response_time_statistics": {
+        "average_ms": 0.0,
+        "slow_threshold_ms": 1000,
+        "slow_request_count": 0
+    },
+    "frequent_errors": [
+        {
+            "status_code": 404,
+            "count": 24
+        },
+        {
+            "status_code": 500,
+            "count": 19
+        },
+        {
+            "status_code": 403,
+            "count": 17
+        },
+        {
+            "status_code": 502,
+            "count": 10
+        }
+    ],
+    "frequently_accessed_resources": [
+        {
+            "resource": "/compress/",
+            "count": 98
+        },
+        {
+            "resource": "/sample-csv-files/",
+            "count": 86
+        },
+        {
+            "resource": "/assets/app.js",
+            "count": 85
+        },
+        {
+            "resource": "/guides/",
+            "count": 81
+        },
+        {
+            "resource": "/login",
+            "count": 79
+        },
+        {
+            "resource": "/pricing",
+            "count": 77
+        },
+        {
+            "resource": "/blog/en/",
+            "count": 77
+        },
+        {
+            "resource": "/api/health",
+            "count": 75
+        },
+        {
+            "resource": "/favicon.ico",
+            "count": 75
+        },
+        {
+            "resource": "/",
+            "count": 67
+        }
+    ],
+    "status_code_distribution": {
+        "200": 692,
+        "301": 23,
+        "304": 15,
+        "403": 17,
+        "404": 24,
+        "500": 19,
+        "502": 10
+    },
+    "slow_requests": [],
+    "rejected_records": []
+}

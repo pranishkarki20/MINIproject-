@@ -1,0 +1,40 @@
+=======================================================
+APPLICATION LOG MONITORING REPORT
+=======================================================
+Dataset: sample-web-logs.csv
+Valid records: 800
+Malformed records: 0
+
+REQUEST STATISTICS
+------------------------------
+Successful requests: 692
+Redirects: 38
+Client errors (4xx): 41
+Server errors (5xx): 29
+Failed requests (4xx + 5xx): 70
+Error percentage: 8.75%
+
+RESPONSE TIMES
+------------------------------
+Average response time: 0.0 ms
+Slow requests: 0
+
+FREQUENT ERRORS
+------------------------------
+HTTP 404: 24 occurrences
+HTTP 500: 19 occurrences
+HTTP 403: 17 occurrences
+HTTP 502: 10 occurrences
+
+MOST ACCESSED RESOURCES
+------------------------------
+/compress/: 98 requests
+/sample-csv-files/: 86 requests
+/assets/app.js: 85 requests
+/guides/: 81 requests
+/login: 79 requests
+/pricing: 77 requests
+/blog/en/: 77 requests
+/api/health: 75 requests
+/favicon.ico: 75 requests
+/: 67 requests
