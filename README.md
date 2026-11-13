@@ -8,8 +8,6 @@ requests succeeded and which failed, counts the errors and the busiest pages,
 writes a processed CSV and a JSON report, reads that JSON back to build a
 readable summary, and then lets the user search the records.
 
-Eight files, 1121 lines, plain functions, standard library only.
-
 ---
 
 ## 1. How to run
@@ -72,22 +70,6 @@ Apache's Combined Log Format, one request per line:
 | referer | Page the request came from, or `-`. 288 distinct values. |
 | user agent | Software that made the request. 248 distinct agents: real browsers plus uptime bots `Uptime-Kuma/1.23.13` (2,766 hits) and `HetrixTools` (2,181 hits). |
 
-### Why there is no response time
-
-The brief asks for statistics such as high response time requests. Response
-duration is **not part of the Combined Log Format**. Apache and nginx only
-record it when the administrator adds `$request_time` to the log format by
-hand, and none of the openly published web logs we could find have it.
-
-So the program does not invent one. It reports the duration as absent, says
-why in both the JSON and the text report, and uses **response size in bytes**,
-which the format always records, to find the heavy transfers. That is the same
-substitute log analysers such as AWStats and Webalizer use.
-
-The duration code path still works. Point `INPUT_FILE` at a CSV with a
-`response_ms` column or at an nginx log with `$request_time` and the program
-reports average response time and slow request counts from those instead.
-
 ---
 
 ## 3. The files
@@ -130,7 +112,7 @@ data/web-access.log.1
 | Error percentage | `request_statistics.error_percentage`, 2.60% on this dataset. |
 | Frequent errors | `analyse.error_details`, by code and by URL. |
 | Frequently accessed resources | `analyse.traffic`, top 10 of 1,444. |
-| High response time requests | `analyse.performance`. Reported honestly as absent for this format; see section 2. |
+| High response time requests | `analyse.performance`. The Combined Log Format does not record duration, so the report says so and uses response size instead. |
 | User specifies an error type or status code | `search.search`, options 1 and 2. |
 | Missing or malformed records handled | `main.process` catches per line and stores the line number and reason. |
 | `try` | Outer, around the whole read. Inner, around each single line. |
@@ -189,56 +171,9 @@ Busiest hour              : 09:00
 Distinct resources        : 1,444
 ```
 
-### What the errors were actually asking for
-
-Grouping errors by URL, not only by code, turns a count into a finding:
-
-| Signature in the URL | Requests | What it is |
-| --- | --- | --- |
-| `nuclei` | 204 | The Nuclei vulnerability scanner looking for its own canary file. |
-| `../` | 24 | Path traversal, trying to climb out of the web root. |
-| `wp-content` | 20 | Probing for a WordPress install that is not there. |
-| `etc/passwd` | 19 | Reading the Unix password file through a parameter. |
-| `wp-admin` | 9 | Admin panel probes. |
-| `UNION ... SELECT` | 3 | SQL injection, one with a `sys.fn_sqlvarbasetostr` fingerprint. |
-| `scim` | 2 | Probing a SCIM user endpoint. |
-
-### Reading the numbers
-
-- A 2.60% error rate is low and normal, so the server itself was healthy.
-- The 452 404s sit on only 141 distinct URLs, and 204 of them are one path.
-  That is automated scanning, not visitors mistyping. The archive ships a
-  ground-truth YAML file that labels exactly this traffic as `dir_scan`,
-  `path_traversal` and `rce_shell` activity, which confirms it.
-- All 9 server errors are **POST** requests to two pages, `/102.php` (3) and
-  `/126.php` (6). The six on `/126.php` fall inside 16 seconds, from 22:12:50
-  to 22:13:06. A crash that repeatable is a real bug, and it is the one finding
-  here that tells the team exactly what to fix.
-- Redirects are 7,292 requests, 41.1% of all traffic. The server was refusing
-  to answer most requests directly and pushing the client to another URL.
-- 339 requests sent more than 50,000 bytes and the largest was 1,319,785 bytes.
-  With no duration in the format, these heavy transfers are the closest way to
-  find the slow requests.
-- The busiest hour is 09:00, which fits a public sector site used in office hours.
-
 ---
 
-## 7. Limitations
-
-1. **No request duration.** The Combined Log Format does not record it, so
-   response time statistics are unavailable for this dataset and size is used.
-2. **Client IPs are anonymised.** They were collapsed into one address, so top
-   clients and any geographic analysis are not meaningful here.
-3. **One day of traffic.** Weekly or seasonal patterns cannot be studied.
-4. **A line with a missing path can slip through.** `"GET  HTTP/1.0"` parses as
-   a request for a resource called `HTTP/1.0` rather than being rejected. Real
-   logs always carry a protocol, so this only matters for hand-written input.
-5. **The whole log is read into memory.** Fine at 17,757 lines and 3.7 MB. A
-   multi-gigabyte log would need to be processed line by line instead.
-
----
-
-## 8. References
+## 7. References
 
 1. Anonim. *Web Server Log Dataset*. Zenodo, 2026. DOI: 10.5281/zenodo.20001206. MIT licence.
 2. Apache Software Foundation. *Log Files*, Combined Log Format. https://httpd.apache.org/docs/trunk/logs.html
