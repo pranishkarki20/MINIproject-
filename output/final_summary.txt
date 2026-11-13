@@ -1,40 +1,71 @@
-=======================================================
+==========================================================
 APPLICATION LOG MONITORING REPORT
-=======================================================
-Dataset: sample-web-logs.csv
-Valid records: 800
-Malformed records: 0
+==========================================================
+Dataset file      : data\web-access.log.1
+Dataset source    : Web Server Log Dataset (10.5281/zenodo.20001206)
+Publisher         : Zenodo, 2026-05-03
+Licence           : MIT
+Log format        : Apache Combined Log Format (text access log)
+Generated at      : 2026-11-13T22:14:03
+Valid records     : 17757
+Malformed records : 0
 
 REQUEST STATISTICS
 ------------------------------
-Successful requests: 692
-Redirects: 38
-Client errors (4xx): 41
-Server errors (5xx): 29
-Failed requests (4xx + 5xx): 70
-Error percentage: 8.75%
+Successful requests (2xx) : 10003
+Redirects (3xx)           : 7292
+Client errors (4xx)       : 453
+Server errors (5xx)       : 9
+Failed requests (4xx+5xx) : 462
+Error percentage          : 2.6%
 
-RESPONSE TIMES
+PERFORMANCE
 ------------------------------
-Average response time: 0.0 ms
-Slow requests: 0
+Average response time : not recorded by this log format
+The Combined Log Format does not record request duration, so response size is reported instead.
+Average response size : 8571.3 bytes
+Largest response      : 1319785 bytes
+Heavy transfers       : 339 (over 50000 bytes)
+Total data sent       : 145.15 MB
+
+TRAFFIC PROFILE
+------------------------------
+Distinct resources : 1444
+Unique client IPs  : 2
+Busiest hour       : 09:00
+Methods used       : {'GET': 14146, 'HEAD': 2199, 'POST': 1402, 'OPTIONS': 9, 'PUT': 1}
 
 FREQUENT ERRORS
 ------------------------------
-HTTP 404: 24 occurrences
-HTTP 500: 19 occurrences
-HTTP 403: 17 occurrences
-HTTP 502: 10 occurrences
+HTTP 404 (Not Found): 452 occurrences
+    /nuclei.svg?DYoaX=x: 204
+    /4.png: 44
+    /5.png: 43
+HTTP 500 (Internal Server Error): 9 occurrences
+    /126.php: 6
+    /102.php: 3
+HTTP 405 (Method Not Allowed): 1 occurrences
+    /33K4V7PIhz3a2BWCc97ZNAEpJI6.json: 1
 
 MOST ACCESSED RESOURCES
 ------------------------------
-/compress/: 98 requests
-/sample-csv-files/: 86 requests
-/assets/app.js: 85 requests
-/guides/: 81 requests
-/login: 79 requests
-/pricing: 77 requests
-/blog/en/: 77 requests
-/api/health: 75 requests
-/favicon.ico: 75 requests
-/: 67 requests
+/1.php: 3099 requests
+/: 2504 requests
+/3.php: 1094 requests
+/2.php: 460 requests
+/31.php: 309 requests
+/7.php: 301 requests
+/10.php: 244 requests
+/style/1.css: 232 requests
+/style/3.css: 217 requests
+/2.ico: 211 requests
+
+NOTABLE FINDINGS
+------------------------------
+- 45.1% of all HTTP 404 errors are requests for /nuclei.svg?DYoaX=x (204 of 452).
+- Server errors are concentrated in: /126.php, /102.php.
+
+SERVER ERROR CLUSTERS
+------------------------------
+HTTP 500 on /126.php: 6 failures in 16.0 seconds
+HTTP 500 on /102.php: 3 failures in 7824.0 seconds

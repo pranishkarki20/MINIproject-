@@ -1,91 +1,241 @@
 {
-    "dataset": "sample-web-logs.csv",
-    "generated_at": "2026-10-25T22:19:30",
-    "total_valid_records": 800,
+    "report": "Application Log Monitoring and Error Analysis",
+    "course": "25PCCS202 Python Programming, Mini Project 4, Unit IV",
+    "dataset": {
+        "title": "Web Server Log Dataset",
+        "author": "Anonim",
+        "publisher": "Zenodo",
+        "published": "2026-05-03",
+        "doi": "10.5281/zenodo.20001206",
+        "url": "https://zenodo.org/records/20001206",
+        "download": "https://zenodo.org/api/records/20001206/files/organization-x.zip/content",
+        "license": "MIT",
+        "file_in_archive": "organization-x/log/apache2/web-access.log.1",
+        "description": "Raw Apache access log from a live public sector web server, published for research into reconstructing web application attacks. Copied out of the archive unchanged.",
+        "file": "data\\web-access.log.1",
+        "format": "Apache Combined Log Format (text access log)"
+    },
+    "generated_at": "2026-11-13T22:14:03",
+    "total_valid_records": 17757,
     "malformed_records": 0,
     "request_statistics": {
-        "successful_requests": 692,
-        "redirects": 38,
-        "client_errors": 41,
-        "server_errors": 29,
-        "failed_requests": 70,
+        "successful_requests": 10003,
+        "redirects": 7292,
+        "client_errors": 453,
+        "server_errors": 9,
+        "failed_requests": 462,
         "unknown_status_requests": 0,
-        "error_percentage": 8.75
+        "error_percentage": 2.6
     },
     "response_time_statistics": {
-        "average_ms": 0.0,
+        "recorded_in_log": false,
+        "note": "The Combined Log Format does not record request duration, so response size is reported instead.",
+        "average_ms": null,
         "slow_threshold_ms": 1000,
         "slow_request_count": 0
+    },
+    "transfer_statistics": {
+        "average_bytes": 8571.3,
+        "largest_response_bytes": 1319785,
+        "heavy_threshold_bytes": 50000,
+        "heavy_request_count": 339,
+        "total_bytes_sent": 152200617,
+        "total_mb_sent": 145.15
+    },
+    "traffic_profile": {
+        "distinct_resources": 1444,
+        "unique_client_ips": 2,
+        "busiest_hour": "09:00",
+        "requests_by_method": {
+            "GET": 14146,
+            "HEAD": 2199,
+            "POST": 1402,
+            "OPTIONS": 9,
+            "PUT": 1
+        },
+        "status_code_distribution": {
+            "200": 9993,
+            "206": 10,
+            "302": 7066,
+            "304": 226,
+            "404": 452,
+            "405": 1,
+            "500": 9
+        },
+        "top_resources": [
+            {
+                "resource": "/1.php",
+                "count": 3099
+            },
+            {
+                "resource": "/",
+                "count": 2504
+            },
+            {
+                "resource": "/3.php",
+                "count": 1094
+            },
+            {
+                "resource": "/2.php",
+                "count": 460
+            },
+            {
+                "resource": "/31.php",
+                "count": 309
+            },
+            {
+                "resource": "/7.php",
+                "count": 301
+            },
+            {
+                "resource": "/10.php",
+                "count": 244
+            },
+            {
+                "resource": "/style/1.css",
+                "count": 232
+            },
+            {
+                "resource": "/style/3.css",
+                "count": 217
+            },
+            {
+                "resource": "/2.ico",
+                "count": 211
+            }
+        ]
     },
     "frequent_errors": [
         {
             "status_code": 404,
-            "count": 24
+            "count": 452,
+            "reason": "Not Found",
+            "top_urls": [
+                {
+                    "url": "/nuclei.svg?DYoaX=x",
+                    "count": 204
+                },
+                {
+                    "url": "/4.png",
+                    "count": 44
+                },
+                {
+                    "url": "/5.png",
+                    "count": 43
+                },
+                {
+                    "url": "/images/8.png",
+                    "count": 9
+                },
+                {
+                    "url": "/miscadmin",
+                    "count": 8
+                }
+            ]
         },
         {
             "status_code": 500,
-            "count": 19
+            "count": 9,
+            "reason": "Internal Server Error",
+            "top_urls": [
+                {
+                    "url": "/126.php",
+                    "count": 6
+                },
+                {
+                    "url": "/102.php",
+                    "count": 3
+                }
+            ]
         },
         {
-            "status_code": 403,
-            "count": 17
-        },
-        {
-            "status_code": 502,
-            "count": 10
+            "status_code": 405,
+            "count": 1,
+            "reason": "Method Not Allowed",
+            "top_urls": [
+                {
+                    "url": "/33K4V7PIhz3a2BWCc97ZNAEpJI6.json",
+                    "count": 1
+                }
+            ]
         }
     ],
     "frequently_accessed_resources": [
         {
-            "resource": "/compress/",
-            "count": 98
-        },
-        {
-            "resource": "/sample-csv-files/",
-            "count": 86
-        },
-        {
-            "resource": "/assets/app.js",
-            "count": 85
-        },
-        {
-            "resource": "/guides/",
-            "count": 81
-        },
-        {
-            "resource": "/login",
-            "count": 79
-        },
-        {
-            "resource": "/pricing",
-            "count": 77
-        },
-        {
-            "resource": "/blog/en/",
-            "count": 77
-        },
-        {
-            "resource": "/api/health",
-            "count": 75
-        },
-        {
-            "resource": "/favicon.ico",
-            "count": 75
+            "resource": "/1.php",
+            "count": 3099
         },
         {
             "resource": "/",
-            "count": 67
+            "count": 2504
+        },
+        {
+            "resource": "/3.php",
+            "count": 1094
+        },
+        {
+            "resource": "/2.php",
+            "count": 460
+        },
+        {
+            "resource": "/31.php",
+            "count": 309
+        },
+        {
+            "resource": "/7.php",
+            "count": 301
+        },
+        {
+            "resource": "/10.php",
+            "count": 244
+        },
+        {
+            "resource": "/style/1.css",
+            "count": 232
+        },
+        {
+            "resource": "/style/3.css",
+            "count": 217
+        },
+        {
+            "resource": "/2.ico",
+            "count": 211
         }
     ],
     "status_code_distribution": {
-        "200": 692,
-        "301": 23,
-        "304": 15,
-        "403": 17,
-        "404": 24,
-        "500": 19,
-        "502": 10
+        "200": 9993,
+        "206": 10,
+        "302": 7066,
+        "304": 226,
+        "404": 452,
+        "405": 1,
+        "500": 9
     },
-    "slow_requests": [],
-    "rejected_records": []
+    "error_findings": [
+        "45.1% of all HTTP 404 errors are requests for /nuclei.svg?DYoaX=x (204 of 452).",
+        "Server errors are concentrated in: /126.php, /102.php."
+    ],
+    "server_error_clusters": [
+        {
+            "status_code": 500,
+            "url": "/126.php",
+            "count": 6,
+            "first_seen": "2025-10-06T22:12:50+07:00",
+            "last_seen": "2025-10-06T22:13:06+07:00",
+            "span_seconds": 16.0
+        },
+        {
+            "status_code": 500,
+            "url": "/102.php",
+            "count": 3,
+            "first_seen": "2025-10-06T13:19:44+07:00",
+            "last_seen": "2025-10-06T15:30:08+07:00",
+            "span_seconds": 7824.0
+        }
+    ],
+    "rejected_records": {
+        "total_rejected": 0,
+        "by_reason": {},
+        "examples": []
+    }
 }
