@@ -8,6 +8,8 @@ requests succeeded and which failed, counts the errors and the busiest pages,
 writes a processed CSV and a JSON report, reads that JSON back to build a
 readable summary, and then lets the user search the records.
 
+Nine flat modules, 1,508 lines, plain functions, standard library core with an optional pandas view.
+
 ---
 
 ## 1. How to run
@@ -74,27 +76,33 @@ Apache's Combined Log Format, one request per line:
 
 ## 3. The files
 
-| File | Lines | What it does |
-| --- | --- | --- |
-| `main.py` | 124 | Runs the five stages. Holds the paths and the two-level `try` / `except` / `else` / `finally`. |
-| `read_log.py` | 170 | Opens the log and splits each line into fields. A regex for a text log, `csv.DictReader` for a CSV. |
-| `validate.py` | 145 | Checks each field and converts it to a real type. Raises `ValueError` with a reason. |
-| `analyse.py` | 295 | Counts categories, errors, resources, sizes and hours. Groups errors by URL. |
-| `write_csv.py` | 45 | Writes `output/processed_logs.csv`. |
-| `write_json.py` | 67 | Builds and writes `output/summary_report.json`, citation included. |
-| `make_summary.py` | 187 | Reads that JSON back off the disk and lays it out as `output/final_summary.txt`. |
-| `search.py` | 88 | The interactive menu to find records by status code or error type. |
+| File | Lines | Fns | What it does |
+| --- | --- | --- | --- |
+| `main.py` | 155 | 2 | Runs the stages. Holds the paths and the two-level `try` / `except` / `else` / `finally`. |
+| `read_log.py` | 192 | 7 | Opens the log, sniffs whether it is CSV or text, splits each line into fields. |
+| `validate.py` | 145 | 6 | Checks each field and converts it to a real type. Raises `ValueError` with a reason. |
+| `analyse.py` | 314 | 11 | Categories, error rate, resources, sizes, hours, errors grouped by code and by URL. |
+| `write_csv.py` | 128 | 4 | Writes the processed CSV and the hourly summary, reads the hourly file back to check it. |
+| `write_json.py` | 67 | 2 | Builds and writes `output/summary_report.json`, citation included. |
+| `make_summary.py` | 298 | 6 | Reads the JSON back, writes the text summary, keeps a run history. |
+| `search.py` | 88 | 2 | The interactive menu to find records by status code or error type. |
+| `pandas_view.py` | 121 | 1 | Optional. Reads and writes CSV and JSON through pandas and cross-checks the totals. |
+
+Total 1,508 lines and 41 functions. The core uses only the standard library,
+and `pandas_view.py` is called inside a `try` that catches `ImportError`, so
+the project runs unchanged on a machine without pandas.
 
 The order the program runs in:
 
 ```
 data/web-access.log.1
-   -> read_log      split every line into fields
+   -> read_log      sniff the format, split every line into fields
    -> validate      one record, or a reason it was rejected
    -> analyse       categories, counts, error breakdown
-   -> write_csv     output/processed_logs.csv
-   -> write_json    output/summary_report.json
-   -> make_summary  read the JSON back, write output/final_summary.txt
+   -> write_csv     processed_logs.csv and hourly_summary.csv, then read back
+   -> pandas_view   optional, reads the CSV and writes CSV and JSON
+   -> write_json    summary_report.json
+   -> make_summary  read the JSON back, write final_summary.txt and run history
    -> search        interactive
 ```
 
@@ -102,27 +110,42 @@ data/web-access.log.1
 
 ## 4. Unit IV concepts, and where each one is used
 
-| Requirement | Where |
-| --- | ---|
-| File handling with `with open()` | `read_log.read_lines`, `read_log.read_csv_rows`, and all four writers. |
-| Read and write operations | Reads a text log, writes CSV, JSON and a text file. |
-| Process a CSV or text dataset | Text log by default. CSV automatically when the file ends in `.csv`. |
-| Regular expressions | `read_log.APACHE_LINE`, because a user agent is full of spaces. |
-| Identify successful, client, server and failed requests | `analyse.classify` and `analyse.request_counts`. |
-| Error percentage | `request_statistics.error_percentage`, 2.60% on this dataset. |
-| Frequent errors | `analyse.error_details`, by code and by URL. |
-| Frequently accessed resources | `analyse.traffic`, top 10 of 1,444. |
-| High response time requests | `analyse.performance`. The Combined Log Format does not record duration, so the report says so and uses response size instead. |
-| User specifies an error type or status code | `search.search`, options 1 and 2. |
-| Missing or malformed records handled | `main.process` catches per line and stores the line number and reason. |
-| `try` | Outer, around the whole read. Inner, around each single line. |
-| `except` | `FileNotFoundError`, `PermissionError`, `UnicodeDecodeError`, `ValueError`, `TypeError`, `OSError`, `json.JSONDecodeError`, `EOFError`, `KeyboardInterrupt`. All named, no bare `except:`. |
-| `else` | After the record loop in `main.process`, and after the JSON parse in `make_summary.read_report`. |
-| `finally` | After the read stage and after the JSON read stage, so they run on success and on error. |
-| Specific exception types, not generic | Each handler names one type and prints a different message. |
-| JSON read back into Python | `make_summary.read_report` re-opens the file. The summary is built from what was read, not from the dictionary the program already had. |
-| Functions and modularity | 34 functions across 8 files, no classes. |
-| No hard coded answers | Every statistic is counted from the log at run time. |
+The syllabus lists Unit IV as *File Handling, JSON, CSV & Error Management*.
+Every item in that list is below, with the function that demonstrates it.
+
+| Syllabus item | Where it is used |
+| --- | --- |
+| File handling basics: `read` | `make_summary.read_history()` reads the whole history file with `file.read()` |
+| File handling basics: `readline` | `read_log.detect_format()` peeks at line one with `readline()` to choose the reader |
+| File handling basics: `write` | `make_summary.write_text()` and `write_json.write_json()` |
+| File handling basics: `readlines` | `read_log.read_lines()` loads the log with `readlines()` |
+| File handling basics: `writelines` | `make_summary.write_text()` writes the report with `writelines()` |
+| File modes | `"r"` in `read_log`, `"w"` in the three writers, `"a"` in `make_summary.record_run()` |
+| Context manager `with open()` | 11 uses across read and write paths, no bare `open()` left unclosed |
+| Working with CSV using the `csv` module | `csv.reader` and `csv.writer` in `write_csv`, `csv.DictReader` in `read_log`, `csv.DictWriter` in `write_csv` |
+| JSON handling using the `json` module | `json.dump` in `write_json`, `json.load` in `read_report`, `json.loads` and `json.dumps` in the run history |
+| Exception handling: `try` | `main.process()` outer around the read, inner around each record |
+| Exception handling: `except` | 23 handlers, each naming a specific type |
+| Exception handling: `else` | 10 `else` clauses in total, including after the record loop in `main.process` and after the JSON parse in `read_report` |
+| Exception handling: `finally` | `main.process()` and `read_report()`, so the stage marker prints on success and on failure |
+| Specific exception types | `FileNotFoundError`, `PermissionError`, `UnicodeDecodeError`, `ValueError`, `TypeError`, `OSError`, `ImportError`, `json.JSONDecodeError`, `EOFError`, `KeyboardInterrupt`. No bare `except:` |
+| Raising exceptions | `read_log.parse_apache_line`, `read_log.detect_format`, `read_log.read_csv_rows`, `validate.check_time`, `check_status`, `check_duration`, `check_size`, `build_record` all `raise ValueError` with a reason |
+| Introduction to pandas for CSV and JSON | `pandas_view.summarise()` does `read_csv`, `groupby`, `to_csv`, `to_json` and `read_json`, then checks its totals against the standard library |
+
+And the requirements named in the project brief itself:
+
+| Brief requirement | Where |
+| --- | --- |
+| Identify successful, client, server and failed requests | `analyse.classify` and `analyse.request_counts` |
+| Error percentage | `request_statistics.error_percentage`, 2.60% on this dataset |
+| Frequent errors | `analyse.error_details`, by code and by URL |
+| Frequently accessed resources | `analyse.traffic`, top 10 of 1,444 |
+| High response time requests | `analyse.performance`. The format records no duration, so it says so and uses response size |
+| User specifies an error type or status code | `search.search`, options 1 and 2 |
+| Missing or malformed records handled | `main.process` catches per line, `analyse.rejected_summary` tallies by reason |
+| JSON read back and used for the summary | `make_summary.read_report` re-opens the file, `make_text` reads only from it |
+| Analysis, output and interpretation | Section 7 |
+| Code quality, modularity | 9 modules, 41 functions, no classes, standard library core |
 
 ---
 
@@ -153,7 +176,47 @@ Two bugs found and fixed while building this:
 
 ---
 
-## 6. Results
+## 6. Outputs
+
+| File | Size | What it is for |
+| --- | --- | --- |
+| `output/processed_logs.csv` | 17,758 lines | One row per valid request, for opening in a spreadsheet |
+| `output/hourly_summary.csv` | 25 lines | Hour by hour totals, written with `csv.writer` |
+| `output/summary_report.json` | 18 top-level keys | All statistics plus the dataset citation. What `make_summary` re-reads |
+| `output/final_summary.txt` | 88 lines | The human report, built from the JSON read back off disk |
+| `output/run_history.txt` | one line per run | Appended in mode `"a"`, so repeat runs can be compared |
+| `output/hourly_pandas.csv` | 25 lines | The same hourly table written by pandas instead of `csv.writer` |
+| `output/pandas_summary.json` | 25 rows | Written by `to_json()`, then read back by `pd.read_json()` |
+
+Two of these exist to prove the others are right. `write_csv.read_hourly()`
+reads `hourly_summary.csv` back with `csv.reader` and checks the requests add
+up to the number analysed, and `pandas_view` compares its own totals against
+the standard library result. Both checks pass and both are printed in the
+summary under `OUTPUT SELF-CHECK` and `PANDAS CROSS-CHECK`.
+
+### 6.1 Processed CSV columns
+
+timestamp, ip, method, url, status_code, response_bytes, response_time_ms,
+category, error_message. Two real rows:
+
+```
+timestamp,ip,method,url,status_code,response_bytes,response_time_ms,category,error_message
+06/Oct/2025:07:35:12 +0700,255.102.154.224,GET,/1.php,200,8571,,Successful,
+06/Oct/2025:07:38:16 +0700,255.102.154.224,GET,/4.png,404,656,,Client Error,404 Not Found
+```
+
+### 6.2 Run history format
+
+One compact JSON object per line, appended each run and read back with
+`json.loads()` line by line:
+
+```
+{"run": 3, "at": "2026-11-17T12:31:44", "records": 17757, "rejected": 0, "error_pct": 2.6, "total_mb": 145.15}
+```
+
+---
+
+## 7. Results
 
 ```
 Valid records             : 17757
@@ -167,13 +230,38 @@ Average response size     : 8,571.3 bytes
 Largest response          : 1,319,785 bytes
 Heavy transfers           : 339
 Total data sent           : 145.15 MB
-Busiest hour              : 09:00
+Busiest hour              : 09:00 (1,976 requests)
+Worst hour for errors     : 10:00 at 12.59% (219 of 1,740)
 Distinct resources        : 1,444
 ```
 
+### What the new checks found
+
+**The errors are not spread evenly across the day.** Hour 10:00 returned 219
+failures out of 1,740 requests, a 12.59% error rate against 2.60% for the day
+as a whole. All 219 were 404s. A quiet hour with a fifth of its requests
+failing is more interesting than the busiest hour with almost none, which is
+why `analyse.traffic()` reports the worst error rate separately from the busiest
+hour rather than only reporting volume.
+
+**One file accounts for most of the bandwidth.** `/images/1.ico` sent
+78,190,881 bytes, which is more than half of the 152,200,617 bytes the whole log
+transferred. Ranking by total bytes sent, rather than by request count, points at
+a different resource than ranking by count does: `/1.php` has the most requests
+but `/images/1.ico` has the most traffic.
+
+**Both self-checks passed.** `write_csv.read_hourly()` reads the hourly file back
+with `csv.reader` and the 24 hour rows add up to 17,757, matching the number of
+records analysed. The pandas view reports the same 17,757 rows, the same busiest
+hour of 09:00 and the same 1,976 requests, and its JSON round trip came back
+intact.
+
+Two engines written independently, one in the standard library and one in pandas,
+agreeing on every figure is the strongest correctness evidence in the project.
+
 ---
 
-## 7. References
+## 8. References
 
 1. Anonim. *Web Server Log Dataset*. Zenodo, 2026. DOI: 10.5281/zenodo.20001206. MIT licence.
 2. Apache Software Foundation. *Log Files*, Combined Log Format. https://httpd.apache.org/docs/trunk/logs.html

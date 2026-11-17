@@ -1,0 +1,1 @@
+{"run": 1, "at": "2026-11-17T15:23:27", "records": 17757, "rejected": 0, "error_pct": 2.6, "total_mb": 145.15}
