@@ -1,8 +1,70 @@
 
 import json
 import os
+from datetime import datetime
 
 WIDTH = 58
+
+
+def read_history(path):
+    """Return every previous run recorded in the history file.
+
+    The file is one compact JSON object per line, which is why this uses
+    read() and json.loads() line by line rather than json.load() on the whole
+    file. A missing file is not an error, it just means this is the first run.
+    """
+
+    if not os.path.exists(path):
+        return []
+
+    with open(path, "r", encoding="utf-8") as file:
+        text = file.read()
+
+    runs = []
+
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        try:
+            runs.append(json.loads(line))
+        except json.JSONDecodeError:
+            # A half-written line from an interrupted run. Skip it, keep going.
+            continue
+
+    return runs
+
+
+def record_run(report, path):
+    """Append one line to the run history, so repeat runs can be compared.
+
+    Mode "a" opens for appending and creates the file if it is not there.
+    Nothing already in the file is touched, which is what makes this safe to
+    run every time.
+    """
+
+    stats = report.get("request_statistics", {})
+    previous = len(read_history(path))
+
+    entry = {
+        "run": previous + 1,
+        "at": datetime.now().isoformat(timespec="seconds"),
+        "records": report.get("total_valid_records", 0),
+        "rejected": report.get("malformed_records", 0),
+        "error_pct": stats.get("error_percentage", 0),
+        "total_mb": report.get("transfer_statistics", {}).get("total_mb_sent", 0),
+    }
+
+    try:
+        with open(path, "a", encoding="utf-8") as file:
+            file.write(json.dumps(entry) + "\n")
+
+    except OSError as error:
+        print(f"ERROR writing run history: {error}")
+        return None
+
+    print(f"Run history updated: {path} (run {previous + 1})")
+
+    return entry
 
 
 def read_report(path):
@@ -96,12 +158,31 @@ def make_text(report):
         "-" * 30,
         f"Distinct resources : {traffic.get('distinct_resources', 0)}",
         f"Unique client IPs  : {traffic.get('unique_client_ips', 0)}",
-        f"Busiest hour       : {traffic.get('busiest_hour', 'n/a')}",
+        f"Busiest hour       : {traffic.get('busiest_hour', 'n/a')} "
+        f"({traffic.get('busiest_hour_requests', 0)} requests)",
+        f"Worst hour errors  : {traffic.get('worst_error_hour', 'n/a')} "
+        f"at {traffic.get('worst_error_rate_pct', 0)}% "
+        f"({traffic.get('worst_error_hour_failures', 0)} of "
+        f"{traffic.get('worst_error_hour_requests', 0)})",
         f"Methods used       : {traffic.get('requests_by_method', {})}",
         "",
-        "FREQUENT ERRORS",
+        "OUTPUT SELF-CHECK",
         "-" * 30,
     ])
+
+    check = report.get("hourly_self_check", {})
+
+    if check:
+        lines.extend([
+            f"Hours written to CSV: {check.get('hours_written', 0)}",
+            f"Requests in CSV     : {check.get('requests_in_file', 0)}",
+            f"Requests analysed   : {check.get('requests_analysed', 0)}",
+            f"Match               : {'yes' if check.get('matches') else 'NO'}",
+        ])
+    else:
+        lines.append("hourly summary CSV not written, nothing to check")
+
+    lines.extend(["", "FREQUENT ERRORS", "-" * 30])
 
     frequent = report.get("frequent_errors", [])
 
@@ -144,6 +225,31 @@ def make_text(report):
                 f"{item['count']} failures in {item['span_seconds']} seconds"
             )
 
+    pandas = report.get("pandas_view")
+
+    if pandas:
+        lines.extend(["", "PANDAS CROSS-CHECK", "-" * 30])
+        lines.append(f"Engine                : {pandas.get('engine')}")
+        lines.append(f"Rows read from CSV    : {pandas.get('rows_read')}")
+        lines.append(
+            f"Busiest hour          : {pandas.get('busiest_hour'):02d}:00 "
+            f"({pandas.get('busiest_hour_requests')} requests)"
+        )
+        lines.append(
+            f"Worst hour for errors : {pandas.get('worst_hour'):02d}:00 "
+            f"at {pandas.get('worst_hour_error_pct')}%"
+        )
+        lines.append(
+            f"JSON round trip       : "
+            f"{'ok' if pandas.get('json_round_trip_ok') else 'FAILED'}"
+        )
+        agrees = pandas.get("agrees_with_stdlib")
+
+        if agrees is not None:
+            lines.append(
+                f"Matches csv.writer    : {'yes' if agrees else 'no'}"
+            )
+
     rejected = report.get("rejected_records", {})
 
     if rejected.get("total_rejected"):
@@ -157,6 +263,11 @@ def make_text(report):
 
 
 def write_text(text, path):
+    """Print the summary and save it to a text file.
+
+    writelines() takes a list of strings and writes them in order. It does not
+    add line endings for you, so keepends=True keeps the ones make_text put in.
+    """
 
     print("\n" + text)
 
@@ -164,7 +275,8 @@ def write_text(text, path):
 
     try:
         with open(path, "w", encoding="utf-8") as file:
-            file.write(text + "\n")
+            file.writelines(text.splitlines(keepends=True))
+            file.write("\n")
 
     except OSError as error:
         print(f"ERROR writing summary: {error}")

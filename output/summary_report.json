@@ -46,6 +46,11 @@
         "distinct_resources": 1444,
         "unique_client_ips": 2,
         "busiest_hour": "09:00",
+        "busiest_hour_requests": 1976,
+        "worst_error_hour": "10:00",
+        "worst_error_rate_pct": 12.59,
+        "worst_error_hour_failures": 219,
+        "worst_error_hour_requests": 1740,
         "requests_by_method": {
             "GET": 14146,
             "HEAD": 2199,
@@ -237,5 +242,53 @@
         "total_rejected": 0,
         "by_reason": {},
         "examples": []
+    },
+    "hourly_self_check": {
+        "hours_written": 24,
+        "requests_in_file": 17757,
+        "requests_analysed": 17757,
+        "matches": true
+    },
+    "pandas_view": {
+        "engine": "pandas 3.1.1",
+        "rows_read": 17757,
+        "busiest_hour": 9,
+        "busiest_hour_requests": 1976,
+        "peak_hour_error_pct": 2.07,
+        "worst_hour_error_pct": 12.59,
+        "worst_hour": 10,
+        "top_error_codes": {
+            "404": 452,
+            "500": 9,
+            "405": 1
+        },
+        "top_urls_by_total_bytes": [
+            {
+                "url": "/images/1.ico",
+                "total_bytes": 78190881
+            },
+            {
+                "url": "/assets/3.png",
+                "total_bytes": 8416264
+            },
+            {
+                "url": "/",
+                "total_bytes": 6361444
+            },
+            {
+                "url": "/js/jquery-2.1.0.min.js",
+                "total_bytes": 6222420
+            },
+            {
+                "url": "/3.php",
+                "total_bytes": 5418418
+            }
+        ],
+        "json_round_trip_ok": true,
+        "agrees_with_stdlib": true,
+        "files": [
+            "output\\hourly_pandas.csv",
+            "output\\pandas_summary.json"
+        ]
     }
 }

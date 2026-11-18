@@ -116,19 +116,38 @@ def traffic(records):
     codes = Counter(r["status_code"] for r in records)
 
     hours = Counter()
+    failed_hours = Counter()
 
     for record in records:
         moment = to_time(record["timestamp"])
 
         if moment:
-            hours[moment.strftime("%H")] += 1
+            hour = moment.strftime("%H")
+            hours[hour] += 1
+
+            if record["status_code"] >= 400:
+                failed_hours[hour] += 1
 
     busiest = hours.most_common(1)
+
+    # The hour with the highest error rate, not the most traffic. A quiet hour
+    # where a quarter of requests fail is more interesting than a busy hour
+    # where almost nothing does.
+    rates = {
+        hour: round((failed_hours[hour] / total) * 100, 2)
+        for hour, total in hours.items() if total
+    }
+    worst = max(rates, key=lambda h: rates[h]) if rates else None
 
     return {
         "distinct_resources": len(resources),
         "unique_client_ips": len(clients),
         "busiest_hour": f"{busiest[0][0]}:00" if busiest else "n/a",
+        "busiest_hour_requests": busiest[0][1] if busiest else 0,
+        "worst_error_hour": f"{worst}:00" if worst else "n/a",
+        "worst_error_rate_pct": rates.get(worst, 0) if worst else 0,
+        "worst_error_hour_failures": failed_hours[worst] if worst else 0,
+        "worst_error_hour_requests": hours[worst] if worst else 0,
         "requests_by_method": dict(methods.most_common()),
         "status_code_distribution": {
             str(code): count for code, count in sorted(codes.items())

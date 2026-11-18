@@ -32,8 +32,16 @@ TRAFFIC PROFILE
 ------------------------------
 Distinct resources : 1444
 Unique client IPs  : 2
-Busiest hour       : 09:00
+Busiest hour       : 09:00 (1976 requests)
+Worst hour errors  : 10:00 at 12.59% (219 of 1740)
 Methods used       : {'GET': 14146, 'HEAD': 2199, 'POST': 1402, 'OPTIONS': 9, 'PUT': 1}
+
+OUTPUT SELF-CHECK
+------------------------------
+Hours written to CSV: 24
+Requests in CSV     : 17757
+Requests analysed   : 17757
+Match               : yes
 
 FREQUENT ERRORS
 ------------------------------
@@ -69,3 +77,12 @@ SERVER ERROR CLUSTERS
 ------------------------------
 HTTP 500 on /126.php: 6 failures in 16.0 seconds
 HTTP 500 on /102.php: 3 failures in 7824.0 seconds
+
+PANDAS CROSS-CHECK
+------------------------------
+Engine                : pandas 3.1.1
+Rows read from CSV    : 17757
+Busiest hour          : 09:00 (1976 requests)
+Worst hour for errors : 10:00 at 12.59%
+JSON round trip       : ok
+Matches csv.writer    : yes

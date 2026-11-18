@@ -25,15 +25,38 @@ ALIASES = {
 }
 
 
-def read_lines(path):
+def detect_format(path):
+    """Look at the first line and decide whether this is a CSV or a text log.
 
-    lines = []
+    Uses readline(), which returns one line and leaves the file position after
+    it. Choosing on the file's content rather than its extension means a log
+    named .txt that is really CSV, or a CSV saved as .log, still reads.
+    """
+
+    with open(path, "r", encoding="utf-8-sig", errors="replace") as file:
+        first = file.readline()
+
+    if not first.strip():
+        raise ValueError(f"No content to read from {path}")
+
+    # A CSV header is comma separated with no leading IP address.
+    if "," in first and not first[:1].isdigit() and "[" not in first:
+        return "csv"
+
+    return "text"
+
+
+def read_lines(path):
+    """Return [(line_number, text)] for every line of a text log.
+
+    readlines() loads the whole file as a list of lines. That is fine for a log
+    of this size and it makes the line numbering easy to follow.
+    """
 
     with open(path, "r", encoding="utf-8", errors="replace") as file:
-        for number, text in enumerate(file, start=1):
-            lines.append((number, text))
+        raw = file.readlines()
 
-    return lines
+    return [(number, text) for number, text in enumerate(raw, start=1)]
 
 
 def read_csv_rows(path):
@@ -120,7 +143,7 @@ def first_number(trailing):
 
 def read_log(path):
 
-    if path.lower().endswith(".csv"):
+    if detect_format(path) == "csv":
         return [
             (number, fields, None)
             for number, fields in read_csv_rows(path)
