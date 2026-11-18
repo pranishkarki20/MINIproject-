@@ -1,9 +1,3 @@
-"""Reads the JSON report back from disk and turns it into readable text.
-
-The brief asks for the JSON to be read back into Python and used to build the
-final summary, so this re-opens the file instead of reusing the dictionary the
-program already had. That also proves the file on disk is complete.
-"""
 
 import json
 import os
@@ -12,7 +6,6 @@ WIDTH = 58
 
 
 def read_report(path):
-    """Load the report from disk, or return None with a message."""
 
     try:
         with open(path, "r", encoding="utf-8") as file:
@@ -31,7 +24,6 @@ def read_report(path):
         return None
 
     else:
-        # Runs only when nothing above raised.
         if not isinstance(report, dict):
             print("ERROR: JSON report is not an object at the top level.")
             return None
@@ -39,18 +31,15 @@ def read_report(path):
         return report
 
     finally:
-        # Runs on success and on every failure.
         print("JSON report read stage finished.")
 
 
 def get(report, section, key, default="n/a"):
-    """Read one value from a section without raising KeyError."""
 
     return report.get(section, {}).get(key, default)
 
 
 def make_text(report):
-    """Lay the report out as plain text. Nothing is recalculated here."""
 
     stats = report.get("request_statistics", {})
     timing = report.get("response_time_statistics", {})
@@ -168,7 +157,6 @@ def make_text(report):
 
 
 def write_text(text, path):
-    """Print the summary and save it to a text file."""
 
     print("\n" + text)
 

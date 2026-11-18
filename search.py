@@ -1,9 +1,3 @@
-"""Interactive search over the records already read.
-
-The brief asks that the user be able to specify an error type or a status code
-and get the matching records back. Every branch checks what was typed instead
-of trusting it.
-"""
 
 from analyse import reason
 
@@ -11,7 +5,6 @@ LIMIT = 20
 
 
 def show(matches):
-    """Print up to the limit and say how many were left out."""
 
     print(f"\nMatching records: {len(matches)}")
 
@@ -28,7 +21,6 @@ def show(matches):
 
 
 def search(records):
-    """Run the menu until the user exits, or until input runs out."""
 
     print("\n" + "=" * 58)
     print("SEARCH LOG RECORDS")
@@ -42,7 +34,6 @@ def search(records):
         try:
             choice = input("\nEnter your choice: ").strip()
         except (EOFError, KeyboardInterrupt):
-            # Happens when the program is run with piped input.
             print("\nNo more input. Search ended.")
             return
 

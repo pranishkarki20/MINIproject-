@@ -1,20 +1,13 @@
-"""Counts what the log says: categories, errors, resources, sizes and hours.
-
-Everything here is built from the records at run time. Nothing is a fixed
-answer.
-"""
 
 from collections import Counter
 
 from validate import to_time
 
-# Thresholds.
-SLOW_MS = 1000            # a request slower than this, when duration exists
-HEAVY_BYTES = 50000       # a response larger than this
+SLOW_MS = 1000
+HEAVY_BYTES = 50000
 TOP_ERRORS = 10
 TOP_RESOURCES = 10
 
-# Plain English names for the codes that show up in web logs.
 STATUS_REASONS = {
     200: "OK",
     206: "Partial Content",
@@ -36,7 +29,6 @@ STATUS_REASONS = {
 
 
 def classify(code):
-    """Return the monitoring category for an HTTP status code."""
 
     if 200 <= code < 300:
         return "Successful"
@@ -55,7 +47,6 @@ def reason(code):
 
 
 def add_labels(records):
-    """Give every record its category and a readable error message."""
 
     for record in records:
         code = record["status_code"]
@@ -68,7 +59,6 @@ def add_labels(records):
 
 
 def request_counts(records):
-    """Count requests in each category and work out the error rate."""
 
     counts = Counter(record["category"] for record in records)
     total = len(records)
@@ -88,13 +78,6 @@ def request_counts(records):
 
 
 def performance(records):
-    """Response times when the log has them, otherwise response sizes.
-
-    The Combined Log Format does not record how long a request took, so
-    average_ms stays None instead of being reported as 0, which would claim
-    every request was instant. Size is the honest substitute: a large response
-    also takes the longest to deliver.
-    """
 
     times = [r["response_time_ms"] for r in records
              if r["response_time_ms"] is not None]
@@ -126,7 +109,6 @@ def performance(records):
 
 
 def traffic(records):
-    """What is being asked for, by whom, and when."""
 
     resources = Counter(r["url"] for r in records)
     methods = Counter(r["method"] for r in records)
@@ -159,12 +141,6 @@ def traffic(records):
 
 
 def error_details(records):
-    """Errors by code, and by URL inside each code.
-
-    Grouping by URL is what turns a count into a finding. On this log it shows
-    that almost half the 404s are one scanner probing one path, and that every
-    500 comes from two PHP pages.
-    """
 
     failed = [r for r in records if r["status_code"] >= 400]
     codes = Counter(r["status_code"] for r in failed)
@@ -188,7 +164,6 @@ def error_details(records):
 
 
 def findings(frequent):
-    """Say in plain words what the error breakdown shows."""
 
     notes = []
 
@@ -217,12 +192,6 @@ def findings(frequent):
 
 
 def error_clusters(records, code=500):
-    """Group failures of one code by page and by time.
-
-    All nine 500s spread over nearly nine hours, which looks like background
-    noise. Grouped by page, six of them land on /126.php inside 16 seconds,
-    and that is an incident worth fixing.
-    """
 
     by_url = {}
 
@@ -249,14 +218,12 @@ def error_clusters(records, code=500):
             "span_seconds": (moments[-1] - moments[0]).total_seconds(),
         })
 
-    # Tightest window first, so a burst ranks above a slow trickle.
     clusters.sort(key=lambda c: (c["span_seconds"], -c["count"]))
 
     return clusters
 
 
 def rejected_summary(rejected):
-    """Tally the lines that could not be used, by reason."""
 
     reasons = Counter(reason_text for _, reason_text in rejected)
 
@@ -271,7 +238,6 @@ def rejected_summary(rejected):
 
 
 def analyse(records, rejected):
-    """Run every count and return the pieces the report is built from."""
 
     add_labels(records)
 

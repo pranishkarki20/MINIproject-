@@ -1,8 +1,3 @@
-"""Builds and writes the structured JSON report.
-
-The dataset citation goes in here, not only in the README, so a number can
-never be separated from where it came from.
-"""
 
 import json
 import os
@@ -28,7 +23,6 @@ DATASET = {
 
 
 def build_report(path, sections):
-    """Put the citation, the run time and the analysis into one dictionary."""
 
     if path.lower().endswith(".csv"):
         fmt = "CSV log export"
@@ -45,7 +39,6 @@ def build_report(path, sections):
 
 
 def write_json(report, path):
-    """Write the report as JSON. Returns the path, or None on failure."""
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
@@ -58,7 +51,6 @@ def write_json(report, path):
         return None
 
     except (TypeError, ValueError) as error:
-        # Something in the report is not JSON, such as a datetime object.
         print(f"ERROR: value JSON cannot write: {error}")
         return None
 

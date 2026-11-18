@@ -1,15 +1,8 @@
-"""Checks one parsed line and converts its fields to real types.
-
-A line only becomes a record if every field is usable. Anything else raises
-ValueError with a reason, and main.py counts it as a rejected line instead of
-stopping.
-"""
 
 from datetime import datetime
 
-# Timestamp layouts real logs use, tried in this order.
 TIME_FORMATS = [
-    "%d/%b/%Y:%H:%M:%S %z",   # Apache and nginx
+    "%d/%b/%Y:%H:%M:%S %z",
     "%Y-%m-%dT%H:%M:%S%z",
     "%Y-%m-%dT%H:%M:%SZ",
     "%Y-%m-%dT%H:%M:%S",
@@ -19,7 +12,6 @@ TIME_FORMATS = [
 
 
 def to_time(value):
-    """Return a datetime for a timestamp string, or None."""
 
     text = str(value).strip()
 
@@ -36,11 +28,6 @@ def to_time(value):
 
 
 def check_time(value):
-    """Return the timestamp unchanged if it is real, else raise.
-
-    Raises on an impossible date too, so 32/Dec is rejected even though it
-    looks like a timestamp.
-    """
 
     text = str(value).strip()
 
@@ -54,11 +41,6 @@ def check_time(value):
 
 
 def check_status(value):
-    """Return an HTTP status code as an int.
-
-    999 converts to an int happily but is not a status code, so the range is
-    checked as well as the type.
-    """
 
     text = str(value).strip()
 
@@ -77,12 +59,6 @@ def check_status(value):
 
 
 def check_duration(value, unit="ms"):
-    """Return a response time in milliseconds, or None if the log has none.
-
-    A bare number is read in whatever unit the caller says. A CSV writes
-    milliseconds and nginx $request_time is fractional seconds, so guessing
-    here would be wrong half the time.
-    """
 
     text = str(value).strip().lower()
 
@@ -106,7 +82,6 @@ def check_duration(value, unit="ms"):
 
 
 def check_size(value):
-    """Return the response size in bytes, or None when the log wrote "-"."""
 
     text = str(value).strip()
 
@@ -120,7 +95,6 @@ def check_size(value):
 
 
 def build_record(number, fields):
-    """Turn one dictionary of strings into a record, or raise ValueError."""
 
     url = str(fields.get("url", "")).strip()
 

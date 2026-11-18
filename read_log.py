@@ -1,13 +1,3 @@
-"""Reads the web server log and splits each line into fields.
-
-Two input types are supported: a raw Apache or nginx text access log, and the
-same log exported as CSV. The Combined Log Format looks like this:
-
-    IP ident user [timestamp] "METHOD path protocol" status bytes "referrer" "agent"
-
-A user agent is full of spaces, so a regular expression is used instead of
-splitting the line on whitespace.
-"""
 
 import csv
 import re
@@ -21,8 +11,6 @@ APACHE_LINE = re.compile(
     r'(?P<trailing>.*)$'
 )
 
-# Different log exports name the same column differently. "response_ms" must
-# stay in this list: when it was missing, every response time silently became 0.
 ALIASES = {
     "timestamp": ["timestamp", "time", "datetime", "@timestamp"],
     "ip": ["ip", "ip_address", "client_ip", "remote_addr", "host"],
@@ -38,7 +26,6 @@ ALIASES = {
 
 
 def read_lines(path):
-    """Return [(line_number, text)] for every line of a text log."""
 
     lines = []
 
@@ -50,7 +37,6 @@ def read_lines(path):
 
 
 def read_csv_rows(path):
-    """Return [(line_number, fields)] for a log exported as CSV."""
 
     rows = []
 
@@ -70,7 +56,6 @@ def read_csv_rows(path):
                     f"Columns found: {sorted(headers)}"
                 )
 
-        # start=2 because line 1 is the header row.
         for number, row in enumerate(reader, start=2):
             rows.append((number, pick_fields(row)))
 
@@ -78,7 +63,6 @@ def read_csv_rows(path):
 
 
 def pick_fields(row):
-    """Copy a CSV row into our own field names using the alias table."""
 
     fields = {}
 
@@ -98,10 +82,6 @@ def pick_fields(row):
 
 
 def parse_apache_line(line):
-    """Split one text log line into raw string fields.
-
-    Raises ValueError when the line is not a web log line at all.
-    """
 
     match = APACHE_LINE.match(line.strip())
 
@@ -119,14 +99,12 @@ def parse_apache_line(line):
         "status_code": parts["status_code"] or "",
         "response_bytes": parts["response_bytes"] or "",
         "error_message": "",
-        # nginx can append $request_time after the user agent, in seconds.
         "response_time": first_number(parts["trailing"]),
         "time_unit": "s",
     }
 
 
 def first_number(trailing):
-    """Return the duration an nginx log appends, or an empty string."""
 
     for token in (trailing or "").split():
         if token == "-":
@@ -141,12 +119,6 @@ def first_number(trailing):
 
 
 def read_log(path):
-    """Read the log whichever type it is.
-
-    Returns a list of (line_number, fields, error). On a good line error is
-    None. On a bad line fields is empty and error says what was wrong, so one
-    damaged line never stops the run.
-    """
 
     if path.lower().endswith(".csv"):
         return [

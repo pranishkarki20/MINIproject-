@@ -1,18 +1,3 @@
-"""Application Log Monitoring and Error Analysis System.
-
-Mini Project 4, Unit IV (File Handling, CSV, JSON, Exception Handling)
-Course 25PCCS202 Python Programming
-
-Reads a real Apache web server log, works out which requests succeeded and
-which failed, writes a processed CSV and a JSON report, reads that JSON back
-to build a readable summary, then lets the user search the records.
-
-    python main.py
-
-Dataset: Web Server Log Dataset, Zenodo, DOI 10.5281/zenodo.20001206, MIT
-licence. Details, fields, results and limitations in README.md.
-Who reads which file is in MEMBERS.md.
-"""
 
 import os
 
@@ -32,7 +17,6 @@ FINAL_TEXT = os.path.join(OUTPUT_DIR, "final_summary.txt")
 
 
 def process(path):
-    """Read, validate and analyse the log. Returns (records, rejected)."""
 
     records = []
     rejected = []
@@ -49,11 +33,9 @@ def process(path):
                 records.append(validate.build_record(number, fields))
 
             except (ValueError, TypeError) as problem:
-                # One bad line is counted and skipped, not fatal.
                 rejected.append((number, str(problem)))
 
         else:
-            # Runs only when the loop finished without an outer exception.
             print(f"Log reading completed: {path} ({len(entries)} lines)")
 
     except FileNotFoundError:
@@ -70,19 +52,16 @@ def process(path):
         return None, None
 
     except ValueError as problem:
-        # read_log raises this when the file is not a web log at all.
         print(f"ERROR: {problem}")
         return None, None
 
     finally:
-        # Runs on a normal finish and on every error path above.
         print("Dataset reading stage finished.")
 
     return records, rejected
 
 
 def main():
-    """Run the whole project and return a shell exit code."""
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -105,8 +84,6 @@ def main():
     if write_json.write_json(report, SUMMARY_JSON) is None:
         return 1
 
-    # Read the JSON back off the disk, then build the summary from what was
-    # read. This is the step the brief asks for by name.
     saved = make_summary.read_report(SUMMARY_JSON)
 
     if saved is None:
